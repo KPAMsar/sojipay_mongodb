@@ -5,7 +5,7 @@ const { DB_URL } = process.env;
 console.log("sv", DB_URL);
 
 const options = {
-  // useNewUrlParser: true,
+  useNewUrlParser: true,
 
   useUnifiedTopology: true,
 };
