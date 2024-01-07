@@ -16,7 +16,7 @@ corsOption = {
 };
 app.use(cors(corsOption));
 
-PORT = PORT_NO;
+PORT = PORT_NO || 3001;
 
 app.use("/api/auth", AuthRoutes);
 
