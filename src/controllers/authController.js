@@ -128,7 +128,13 @@ const SignUp = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "User registered successfully!",
-      data: saveBiodata,
+      data: {
+        _id: saveBiodata._id,
+        first_name: saveBiodata.first_name,
+        last_name: saveBiodata.last_name,
+        email: saveBiodata.email,
+        phone_number: saveBiodata.phone_number,
+      },
     });
   } catch (error) {
     console.error(error);
