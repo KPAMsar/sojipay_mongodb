@@ -5,9 +5,7 @@ const SuccessResponse = require("../utils/successResponse");
 const StatusCodes = require("../utils/statusCode");
 
 class AuthServices {
-  constructor(sequelize) {
-    (this.client = sequelize), (this.models = User);
-  }
+ 
 
   async login(payload) {
     try {
