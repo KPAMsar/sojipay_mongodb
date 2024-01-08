@@ -10,6 +10,7 @@
   "author": "Kpamsar Shija",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.6.5",
     "bcrypt": "^5.1.1",
     "bunyan": "^1.8.15",
     "cloudinary": "^1.41.1",

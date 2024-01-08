@@ -10,8 +10,10 @@ require("./src/database/db");
 
 app.use(morgan("dev"));
 
+//Routes
 const AuthRoutes = require("./src/routes/auth");
 const GiftcardRoutes = require("./src/routes/giftCard");
+const AirtimeRoutes = require("./src/routes/airtime");
 
 corsOption = {
   origin: "*",
@@ -22,6 +24,7 @@ PORT = PORT_NO || 3001;
 
 app.use("/api/auth", AuthRoutes);
 app.use("/api/gift-cards", GiftcardRoutes);
+app.use("/api/airtime", AirtimeRoutes);
 
 app.get("/", function (req, res) {
   res.send("Welcome to sojiPay API");
