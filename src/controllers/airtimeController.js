@@ -3,15 +3,6 @@ const axios = require("axios");
 const dotenv = require("dotenv");
 dotenv.config();
 
-// const generateRequestId = () => {
-//   const pad = (number) => (number < 10 ? `0${number}` : `${number}`);
-//   const currentDate = new Date()
-//     .toLocaleString("en-US", { timeZone: "Africa/Lagos" })
-//     .split(/[\/\,\s\:]/);
-//   return `${currentDate[2]}${pad(currentDate[0])}${pad(currentDate[1])}${pad(
-//     currentDate[3]
-//   )}${pad(currentDate[4])}${Math.random().toString(36).substring(2, 14)}`;
-// };
 const generateRequestId = () => {
   const pad = (number) => (number < 10 ? `0${number}` : `${number}`);
   const currentDate = new Date(
@@ -41,10 +32,10 @@ const purchaseAirtime = async (req, res) => {
       service_id: serviceID,
       amount: Number(amount),
       phone_number: Number(phone),
+      user: req.user.userId,
     });
 
     const savedAirtime = airtimeReq._id;
-    console.log("saved", airtimeReq._id);
 
     const airtimeReqData = {
       request_id: requestId,
@@ -65,20 +56,32 @@ const purchaseAirtime = async (req, res) => {
       }
     );
 
-    if (
-      //   airtimeTrx.content.transactions.status === "delivered" &&
-      airtimeTrx.response_description === "TRANSACTION SUCCESSFUL"
-    ) {
+    console.log(airtimeTrx.data);
+
+    if (airtimeTrx.data.response_description === "TRANSACTION SUCCESSFUL") {
+      console.log("erer");
       await AirtimePurchase.findByIdAndUpdate(savedAirtime, {
         status: "successful",
       });
-    } else {
-      await AirtimePurchase.findByIdAndUpdate(savedAirtime, {
-        status: "failed",
+
+      return res.json({
+        success: true,
+        message: "Recharge Successful",
+        data: airtimeTrx.data,
       });
     }
+    if (airtimeTrx.data.response_description === "TRANSACTION FAILED") {
+      await AirtimePurchase.findByIdAndUpdate(savedAirtime, {
+        status: "failed",
+      }).exec();
 
-    // console.log("res", airtimeTrx.data);
+      return res.json({
+        success: false,
+        message: "Recharge Failed",
+        data: airtimeTrx.data,
+      });
+    }
+    return airtimeTrx.data;
   } catch (error) {
     console.log("Error occured", error);
     return res.json({
