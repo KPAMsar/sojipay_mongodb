@@ -1,24 +1,51 @@
-const AirtimePurchase = require("../models/AirtimePurchase");
-const axios = require("axios");
+const { generateRequestId } = require("./../controllers/airtimeController");
+const DataPurchase = require("../models/DataPurchase");
 const dotenv = require("dotenv");
 dotenv.config();
+const axios = require("axios");
 
-const generateRequestId = () => {
-  const pad = (number) => (number < 10 ? `0${number}` : `${number}`);
-  const currentDate = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Africa/Lagos" })
-  );
+const getDataList = async (req, res) => {
+  try {
+    const serviceID = req.query.serviceID;
 
-  const year = currentDate.getFullYear();
-  const month = pad(currentDate.getMonth() + 1);
-  const day = pad(currentDate.getDate());
-  const hours = pad(currentDate.getHours());
-  const minutes = pad(currentDate.getMinutes());
+    if (!serviceID) {
+      return res.status(400).send("Bad Request: Service ID not found");
+    }
 
-  return `${year}${month}${day}${hours}${minutes}`;
+    const url = process.env.DATA_PURCHASE_LIST;
+
+    const dataList = await axios.get(
+      url + serviceID,
+
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "api-key": process.env.VTPASS_API_KEY,
+          "secret-key": process.env.VTPASS_API_PK,
+        },
+      }
+    );
+
+    if (dataList.status === 200) {
+      return res.status(200).json({
+        success: true,
+        message: "List of data",
+        data: dataList.data.content.varations,
+      });
+    } else {
+      return res.send("Something went wrong");
+    }
+  } catch (error) {
+    console.log("Error occured", error);
+    return res.json({
+      error: true,
+      message: "An error occured",
+      error: error.message,
+    });
+  }
 };
 
-const purchaseAirtime = async (req, res) => {
+const purchaseData = async (req, res) => {
   try {
     const { amount, phone, serviceID } = req.body;
     if (!amount || !phone) {
@@ -27,6 +54,7 @@ const purchaseAirtime = async (req, res) => {
 
     const requestId = generateRequestId();
 
+    // return console.log("reqid", requestId);
     const airtimeReq = await AirtimePurchase.create({
       request_id: requestId,
       service_id: serviceID,
@@ -56,10 +84,10 @@ const purchaseAirtime = async (req, res) => {
       }
     );
 
-    console.log(airtimeTrx.data);
+    // console.log(airtimeTrx.data);
 
     if (airtimeTrx.data.response_description === "TRANSACTION SUCCESSFUL") {
-      console.log("erer");
+      //   console.log("erer");
       await AirtimePurchase.findByIdAndUpdate(savedAirtime, {
         status: "successful",
       });
@@ -93,6 +121,6 @@ const purchaseAirtime = async (req, res) => {
 };
 
 module.exports = {
-  purchaseAirtime,
-  generateRequestId,
+  purchaseData,
+  getDataList,
 };
