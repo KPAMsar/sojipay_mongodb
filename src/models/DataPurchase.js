@@ -11,10 +11,7 @@ const dataSchema = new mongoose.Schema(
       type: String,
       required: [true, "Data Service ID is required"],
     },
-    billersCode: {
-      type: String,
-      required: [true, "Data billers code is required"],
-    },
+
     variation_code: {
       type: String,
       required: [true, "Variation code is required"],

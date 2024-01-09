@@ -47,34 +47,38 @@ const getDataList = async (req, res) => {
 
 const purchaseData = async (req, res) => {
   try {
-    const { amount, phone, serviceID } = req.body;
-    if (!amount || !phone) {
-      return res.send("Enter phone number and amount");
+    const { amount, phone, service_id, variation_code } = req.body;
+    if (!amount || !phone || !service_id || !variation_code) {
+      return res.send(
+        "Ensure phone number,amount, service ID, and variation code is entered successfully"
+      );
     }
 
     const requestId = generateRequestId();
 
-    // return console.log("reqid", requestId);
-    const airtimeReq = await AirtimePurchase.create({
+    const dataReq = await DataPurchase.create({
       request_id: requestId,
-      service_id: serviceID,
+      service_id,
+      variation_code,
       amount: Number(amount),
       phone_number: Number(phone),
       user: req.user.userId,
     });
 
-    const savedAirtime = airtimeReq._id;
+    const savedData = dataReq._id;
 
-    const airtimeReqData = {
+    const requestInfo = {
+      variation_code,
       request_id: requestId,
-      serviceID: serviceID,
+      serviceID: service_id,
       amount,
-      phone: phone,
+      billersCode: phone,
+      phone,
     };
 
-    const airtimeTrx = await axios.post(
+    const dataTrx = await axios.post(
       process.env.AIRTIME_PURCHASE_LINK,
-      airtimeReqData,
+      requestInfo,
       {
         headers: {
           "Content-Type": "application/json",
@@ -84,32 +88,30 @@ const purchaseData = async (req, res) => {
       }
     );
 
-    // console.log(airtimeTrx.data);
-
-    if (airtimeTrx.data.response_description === "TRANSACTION SUCCESSFUL") {
-      //   console.log("erer");
-      await AirtimePurchase.findByIdAndUpdate(savedAirtime, {
+    // return console.log("dataTrx.data", dataTrx.data.status);
+    if (dataTrx.data.response_description === "TRANSACTION SUCCESSFUL") {
+      await DataPurchase.findByIdAndUpdate(savedData, {
         status: "successful",
       });
 
       return res.json({
         success: true,
-        message: "Recharge Successful",
-        data: airtimeTrx.data,
+        message: "Data recharge  Successful",
+        data: dataTrx.data,
       });
     }
-    if (airtimeTrx.data.response_description === "TRANSACTION FAILED") {
-      await AirtimePurchase.findByIdAndUpdate(savedAirtime, {
+    if (dataTrx.data.response_description === "TRANSACTION FAILED") {
+      await DataPurchase.findByIdAndUpdate(savedData, {
         status: "failed",
       }).exec();
 
       return res.json({
         success: false,
-        message: "Recharge Failed",
-        data: airtimeTrx.data,
+        message: "Data recharge Failed",
+        data: dataTrx.data,
       });
     }
-    return airtimeTrx.data;
+    return dataTrx.data;
   } catch (error) {
     console.log("Error occured", error);
     return res.json({
